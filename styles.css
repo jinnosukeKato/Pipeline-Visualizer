@@ -1,0 +1,24 @@
+#app {
+  width: 70vw;
+}
+
+.pipeline-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.pipeline-grid .header {
+  background-color: #f0f0f0;
+  font-weight: bold;
+  text-align: center;
+  padding: 8px;
+  border: 1px solid #000;
+}
+
+.pipeline-grid .cell {
+  border: 1px solid #000;
+  height: 3em;
+  background-color: #fff;
+}

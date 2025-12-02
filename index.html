@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Pipeline Visualizer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <h1>Pipeline Visualizer</h1>
+
+        <div>
+            <h2>命令入力</h2>
+            <input type="text">
+            <button>発行</button>
+        </div>
+
+        <div>
+            <h2>パイプライン</h2>
+            <div class="pipeline-grid">
+                <!-- Headers -->
+                <div class="header">IF</div>
+                <div class="header">ID</div>
+                <div class="header">EX</div>
+                <div class="header">MEM</div>
+                <div class="header">WB</div>
+
+                <!-- Cells -->
+                <div class="cell"></div>
+                <div class="cell"></div>
+                <div class="cell"></div>
+                <div class="cell"></div>
+                <div class="cell"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
