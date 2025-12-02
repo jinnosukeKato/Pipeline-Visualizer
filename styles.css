@@ -22,3 +22,10 @@
   height: 3em;
   background-color: #fff;
 }
+
+pre {
+  background-color: #f8f8f8;
+  padding: 10px;
+  border: 1px solid #ccc;
+  overflow-y: auto;
+}
