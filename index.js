@@ -1,5 +1,16 @@
-let instructions = [];
-let currentStep = 0;
+import Processor from "./core.js";
+
+const processor = new Processor();
+
+const updatePipeline = () => {
+  const pc = processor.getProgramCounter();
+
+  document.querySelectorAll(".pipeline-grid .cell").forEach((cell, index) => {
+    cell.textContent = processor.getInstruction(pc - index) || "";
+  });
+
+  document.getElementById("currentStep").textContent = pc;
+};
 
 document
   .getElementById("addInstructionButton")
@@ -12,39 +23,29 @@ document
       input.value = "";
     }
 
-    instructions = document
+    const instructions = document
       .getElementById("instructions")
       .textContent.trim()
       .split("\n");
 
-    document.querySelectorAll(".pipeline-grid .cell").forEach((cell, index) => {
-      cell.textContent = instructions[currentStep - index] || "";
-    });
+    processor.resetProgramCounter();
+    processor.instructions = instructions;
+    updatePipeline();
   });
 
 document.getElementById("nextButton").addEventListener("click", () => {
-  currentStep++;
+  processor.incrimentProgramCounter();
   updatePipeline();
 });
 
 document.getElementById("prevButton").addEventListener("click", () => {
-  if (currentStep > 0) {
-    currentStep--;
-    updatePipeline();
-  }
-});
-
-document.getElementById("resetButton").addEventListener("click", () => {
-  currentStep = 0;
+  processor.decrimentProgramCounter();
   updatePipeline();
 });
 
-const updatePipeline = () => {
-  document.querySelectorAll(".pipeline-grid .cell").forEach((cell, index) => {
-    cell.textContent = instructions[currentStep - index] || "";
-  });
-
-  document.getElementById("currentStep").textContent = currentStep;
-};
+document.getElementById("resetButton").addEventListener("click", () => {
+  processor.resetProgramCounter();
+  updatePipeline();
+});
 
 updatePipeline();
