@@ -22,8 +22,12 @@ class Processor {
     this.pc = 0;
   }
 
+  addInstruction(text) {
+    this.instructions.push(text);
+  }
+
   getInstruction(index) {
-    return this.instructions[index] || "";
+    return this.instructions[index];
   }
 }
 

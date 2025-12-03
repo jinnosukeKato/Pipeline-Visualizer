@@ -15,21 +15,23 @@ const updatePipeline = () => {
 document
   .getElementById("addInstructionButton")
   .addEventListener("click", () => {
-    const input = document.getElementById("instructionInput");
-    const instruction = input.value.trim();
+    const operation = document.getElementById("operationInput");
+    const operand1 = document.getElementById("operandInput_1");
+    const operand2 = document.getElementById("operandInput_2");
+    const operand3 = document.getElementById("operandInput_3");
+
+    const instruction = `${operation.value} ${operand1.value}, ${operand2.value}, ${operand3.value}`.trim();
 
     if (instruction) {
+      operation.value = "";
+      operand1.value = "";
+      operand2.value = "";
+      operand3.value = "";
       document.getElementById("instructions").textContent += `${instruction}\n`;
-      input.value = "";
+      processor.addInstruction(instruction);
     }
 
-    const instructions = document
-      .getElementById("instructions")
-      .textContent.trim()
-      .split("\n");
-
     processor.resetProgramCounter();
-    processor.instructions = instructions;
     updatePipeline();
   });
 
