@@ -28,8 +28,10 @@ document.getElementById("nextButton").addEventListener("click", () => {
 });
 
 document.getElementById("prevButton").addEventListener("click", () => {
-  currentStep--;
-  updatePipeline();
+  if (currentStep > 0) {
+    currentStep--;
+    updatePipeline();
+  }
 });
 
 document.getElementById("resetButton").addEventListener("click", () => {
@@ -41,4 +43,8 @@ const updatePipeline = () => {
   document.querySelectorAll(".pipeline-grid .cell").forEach((cell, index) => {
     cell.textContent = instructions[currentStep - index] || "";
   });
+
+  document.getElementById("currentStep").textContent = currentStep;
 };
+
+updatePipeline();
