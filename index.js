@@ -20,7 +20,17 @@ document
     const operand2 = document.getElementById("operandInput_2");
     const operand3 = document.getElementById("operandInput_3");
 
-    const instruction = `${operation.value} ${operand1.value}, ${operand2.value}, ${operand3.value}`.trim();
+    if (
+      !operation.value ||
+      !operand1.value ||
+      !operand2.value ||
+      !operand3.value
+    ) {
+      return;
+    }
+
+    const instruction =
+      `${operation.value} ${operand1.value}, ${operand2.value}, ${operand3.value}`.trim();
 
     if (instruction) {
       operation.value = "";
