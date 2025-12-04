@@ -42,6 +42,10 @@ class Processor {
   getInstruction(index) {
     return this.instructions[index];
   }
+
+  getAllInstructions() {
+    return this.instructions;
+  }
 }
 
 export default Processor;

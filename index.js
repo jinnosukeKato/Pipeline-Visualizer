@@ -33,12 +33,15 @@ document
       return;
     }
 
-    const instruction =
-      `${operation.value} ${rd.value}, ${rs1.value}, ${rs2.value}`.trim();
-
-    document.getElementById("instructions").textContent += `${instruction}\n`;
-
     processor.addInstruction(operation.value, rd.value, rs1.value, rs2.value);
+
+    document.getElementById("instructions").textContent = processor
+      .getAllInstructions()
+      .map(
+        (instr, l) =>
+          `${l}: ${instr.operation} ${instr.rd}, ${instr.rs1}, ${instr.rs2}`,
+      )
+      .join("\n");
 
     operation.value = "";
     rd.value = "";
