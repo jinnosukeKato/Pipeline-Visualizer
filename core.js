@@ -1,25 +1,38 @@
 class Processor {
   constructor(instructions) {
-    this.pc = 0;
     this.instructions = instructions || [];
+    this.resetProgramCounter();
   }
 
-  getProgramCounter() {
-    return this.pc;
+  getStep() {
+    return this.step;
   }
 
-  incrimentProgramCounter() {
-    this.pc += 1;
+  getPipeline() {
+    const pipeline = [];
+    for (let i = 0; i < 5; i++) {
+      const instrIdx = this.step - 1 - i;
+      if (0 <= instrIdx && instrIdx < this.instructions.length) {
+        pipeline[i] = this.instructions[instrIdx];
+      } else {
+        pipeline[i] = null;
+      }
+    }
+    return pipeline;
   }
 
-  decrimentProgramCounter() {
-    if (this.pc > 0) {
-      this.pc -= 1;
+  incrementStep() {
+    this.step++;
+  }
+
+  decrementStep() {
+    if (this.step > 0) {
+      this.step--;
     }
   }
 
   resetProgramCounter() {
-    this.pc = 0;
+    this.step = 0;
   }
 
   addInstruction(operation, rd, rs1, rs2) {

@@ -3,16 +3,22 @@ import Processor from "./core.js";
 const processor = new Processor();
 
 const updatePipeline = () => {
-  const pc = processor.getProgramCounter();
+  const step = processor.getStep();
+  const pipeline = processor.getPipeline();
+  const stages = ["if", "id", "ex", "mem", "wb"];
 
-  document.querySelectorAll(".pipeline-grid .cell").forEach((cell, index) => {
-    const instr = processor.getInstruction(pc - index);
-    cell.textContent = instr
-      ? `${instr.operation} ${instr.rd}, ${instr.rs1}, ${instr.rs2}`
-      : "";
+  stages.forEach((stage, index) => {
+    const cell = document.querySelector(`.pipeline-grid .cell.${stage}`);
+
+    if (cell) {
+      const instr = pipeline[index];
+      cell.textContent = instr
+        ? `${instr.operation} ${instr.rd}, ${instr.rs1}, ${instr.rs2}`
+        : "";
+    }
   });
 
-  document.getElementById("currentStep").textContent = pc;
+  document.getElementById("currentStep").textContent = step;
 };
 
 document
@@ -44,12 +50,12 @@ document
   });
 
 document.getElementById("nextButton").addEventListener("click", () => {
-  processor.incrimentProgramCounter();
+  processor.incrementStep();
   updatePipeline();
 });
 
 document.getElementById("prevButton").addEventListener("click", () => {
-  processor.decrimentProgramCounter();
+  processor.decrementStep();
   updatePipeline();
 });
 
