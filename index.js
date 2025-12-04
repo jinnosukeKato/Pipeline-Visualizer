@@ -6,7 +6,10 @@ const updatePipeline = () => {
   const pc = processor.getProgramCounter();
 
   document.querySelectorAll(".pipeline-grid .cell").forEach((cell, index) => {
-    cell.textContent = processor.getInstruction(pc - index) || "";
+    const instr = processor.getInstruction(pc - index);
+    cell.textContent = instr
+      ? `${instr.operation} ${instr.rd}, ${instr.rs1}, ${instr.rs2}`
+      : "";
   });
 
   document.getElementById("currentStep").textContent = pc;
@@ -16,30 +19,25 @@ document
   .getElementById("addInstructionButton")
   .addEventListener("click", () => {
     const operation = document.getElementById("operationInput");
-    const operand1 = document.getElementById("operandInput_1");
-    const operand2 = document.getElementById("operandInput_2");
-    const operand3 = document.getElementById("operandInput_3");
+    const rd = document.getElementById("operandInput_1");
+    const rs1 = document.getElementById("operandInput_2");
+    const rs2 = document.getElementById("operandInput_3");
 
-    if (
-      !operation.value ||
-      !operand1.value ||
-      !operand2.value ||
-      !operand3.value
-    ) {
+    if (!operation.value || !rd.value || !rs1.value || !rs2.value) {
       return;
     }
 
     const instruction =
-      `${operation.value} ${operand1.value}, ${operand2.value}, ${operand3.value}`.trim();
+      `${operation.value} ${rd.value}, ${rs1.value}, ${rs2.value}`.trim();
 
-    if (instruction) {
-      operation.value = "";
-      operand1.value = "";
-      operand2.value = "";
-      operand3.value = "";
-      document.getElementById("instructions").textContent += `${instruction}\n`;
-      processor.addInstruction(instruction);
-    }
+    document.getElementById("instructions").textContent += `${instruction}\n`;
+
+    processor.addInstruction(operation.value, rd.value, rs1.value, rs2.value);
+
+    operation.value = "";
+    rd.value = "";
+    rs1.value = "";
+    rs2.value = "";
 
     processor.resetProgramCounter();
     updatePipeline();
