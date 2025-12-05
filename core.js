@@ -2,6 +2,7 @@ class Processor {
   constructor(instructions) {
     this.instructions = instructions || [];
     this.resetProgramCounter();
+    this.pipeline = [];
   }
 
   getStep() {
@@ -9,25 +10,34 @@ class Processor {
   }
 
   getPipeline() {
-    const pipeline = [];
-    for (let i = 0; i < 5; i++) {
-      const instrIdx = this.step - 1 - i;
-      if (0 <= instrIdx && instrIdx < this.instructions.length) {
-        pipeline[i] = this.instructions[instrIdx];
-      } else {
-        pipeline[i] = null;
-      }
-    }
-    return pipeline;
+    return this.pipeline;
   }
 
   incrementStep() {
     this.step++;
+
+    for (let i = 0; i < 5; i++) {
+      const instrIdx = this.step - 1 - i;
+      if (0 <= instrIdx && instrIdx < this.instructions.length) {
+        this.pipeline[i] = this.instructions[instrIdx];
+      } else {
+        this.pipeline[i] = null;
+      }
+    }
   }
 
   decrementStep() {
     if (this.step > 0) {
       this.step--;
+
+      for (let i = 0; i < 5; i++) {
+        const instrIdx = this.step - 1 - i;
+        if (0 <= instrIdx && instrIdx < this.instructions.length) {
+          this.pipeline[i] = this.instructions[instrIdx];
+        } else {
+          this.pipeline[i] = null;
+        }
+      }
     }
   }
 
