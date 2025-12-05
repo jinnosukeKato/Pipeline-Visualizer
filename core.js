@@ -90,16 +90,31 @@ class Processor {
     return this.instructions;
   }
 
-  checkHazard() {
+  getHazardDetails() {
     const exInstr = this.pipeline[2];
     const memInstr = this.pipeline[3];
-    if (exInstr && memInstr) {
-      return (
-        memInstr.rd &&
-        (memInstr.rd === exInstr.rs1 || memInstr.rd === exInstr.rs2)
-      );
+    const details = {
+      detected: false,
+      causes: [], // { stage: 'mem'|'ex', regType: 'rd'|'rs1'|'rs2' }
+    };
+
+    if (exInstr && memInstr && memInstr.rd) {
+      if (memInstr.rd === exInstr.rs1) {
+        details.detected = true;
+        details.causes.push({ stage: "mem", regType: "rd" });
+        details.causes.push({ stage: "ex", regType: "rs1" });
+      }
+      if (memInstr.rd === exInstr.rs2) {
+        details.detected = true;
+        details.causes.push({ stage: "mem", regType: "rd" });
+        details.causes.push({ stage: "ex", regType: "rs2" });
+      }
     }
-    return false;
+    return details;
+  }
+
+  checkHazard() {
+    return this.getHazardDetails().detected;
   }
 }
 

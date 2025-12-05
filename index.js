@@ -12,16 +12,30 @@ const updatePipeline = () => {
 
     if (cell) {
       const instr = pipeline[index];
-      cell.textContent = instr
-        ? `${instr.operation} ${instr.rd}, ${instr.rs1}, ${instr.rs2}`
-        : "";
+      if (instr) {
+        cell.innerHTML = `<span class="op">${instr.operation}</span> <span class="rd">${instr.rd}</span>, <span class="rs1">${instr.rs1}</span>, <span class="rs2">${instr.rs2}</span>`;
+      } else {
+        cell.innerHTML = "";
+      }
     }
   });
 
   document.getElementById("currentStep").textContent = step;
 
-  if (processor.checkHazard()) {
-    alert("Data hazard detected between EX and MEM stages!");
+  // ハザードのハイライト処理
+  const hazardDetails = processor.getHazardDetails();
+  if (hazardDetails.detected) {
+    hazardDetails.causes.forEach((cause) => {
+      const cell = document.querySelector(
+        `.pipeline-grid .cell.${cause.stage}`,
+      );
+      if (cell) {
+        const span = cell.querySelector(`.${cause.regType}`);
+        if (span) {
+          span.classList.add("hazard");
+        }
+      }
+    });
   }
 };
 

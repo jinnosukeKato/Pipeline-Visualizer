@@ -26,6 +26,16 @@
   justify-content: center;
 }
 
+.pipeline-grid .cell span {
+  margin: 0 2px;
+}
+
+.hazard {
+  color: red;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
 pre {
   background-color: #f8f8f8;
   padding: 10px;
