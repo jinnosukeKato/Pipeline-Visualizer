@@ -5,13 +5,17 @@ const processor = new Processor();
 const updatePipeline = () => {
   const step = processor.getStep();
   const pipeline = processor.getPipeline();
-  const stages = ["if", "id", "ex", "mem", "wb"];
+  const stages = ["IF", "ID", "EX", "MEM", "WB"];
 
-  stages.forEach((stage, index) => {
-    const cell = document.querySelector(`.pipeline-grid .cell.${stage}`);
+  stages.forEach((stage) => {
+    const cell = document.querySelector(
+      `.pipeline-grid .cell.${stage.toLowerCase()}`,
+    );
 
     if (cell) {
-      const instr = pipeline[index];
+      const stageObj = pipeline[stage];
+      const instr = stageObj ? stageObj.getInstruction() : null;
+
       if (instr) {
         cell.innerHTML = `<span class="op">${instr.operation}</span> <span class="rd">${instr.rd}</span>, <span class="rs1">${instr.rs1}</span>, <span class="rs2">${instr.rs2}</span>`;
       } else {
@@ -27,7 +31,7 @@ const updatePipeline = () => {
   if (hazardDetails.detected) {
     hazardDetails.causes.forEach((cause) => {
       const cell = document.querySelector(
-        `.pipeline-grid .cell.${cause.stage}`,
+        `.pipeline-grid .cell.${cause.stage.toLowerCase()}`,
       );
       if (cell) {
         const span = cell.querySelector(`.${cause.regType}`);

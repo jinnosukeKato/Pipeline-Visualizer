@@ -1,7 +1,86 @@
+class Stage {
+  constructor(name, nextStage = null, dependStages = null) {
+    this.name = name;
+    this.instruction = null;
+    this.nextStage = nextStage;
+    this.dependStages = dependStages || [];
+  }
+
+  setInstruction(operation, rd, rs1, rs2) {
+    this.instruction = {
+      operation,
+      rd,
+      rs1,
+      rs2,
+    };
+  }
+
+  getInstruction() {
+    return this.instruction;
+  }
+
+  clear() {
+    this.instruction = null;
+  }
+
+  advance() {
+    if (this.checkDataHazard() === true) {
+      return;
+    }
+
+    if (this.nextStage && this.instruction) {
+      this.nextStage.setInstruction(
+        this.instruction.operation,
+        this.instruction.rd,
+        this.instruction.rs1,
+        this.instruction.rs2,
+      );
+    }
+    this.clear();
+  }
+
+  checkDataHazard() {
+    for (const dependStage of this.dependStages) {
+      if (
+        this.instruction &&
+        dependStage.instruction &&
+        dependStage.instruction.rd
+      ) {
+        if (
+          dependStage.instruction.rd === this.instruction.rs1 ||
+          dependStage.instruction.rd === this.instruction.rs2
+        ) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+}
+
 class Processor {
   constructor(instructions) {
     this.instructions = instructions || [];
     this.resetProgramCounter();
+
+    this.pipeline = {
+      IF: new Stage("IF"),
+      ID: new Stage("ID"),
+      EX: new Stage("EX"),
+      MEM: new Stage("MEM"),
+      WB: new Stage("WB"),
+    };
+
+    this.pipeline.IF.nextStage = this.pipeline.ID;
+    this.pipeline.ID.nextStage = this.pipeline.EX;
+    this.pipeline.EX.nextStage = this.pipeline.MEM;
+    this.pipeline.MEM.nextStage = this.pipeline.WB;
+
+    this.pipeline.ID.dependStages = [
+      this.pipeline.EX,
+      this.pipeline.MEM,
+      this.pipeline.WB,
+    ];
   }
 
   getStep() {
@@ -13,53 +92,49 @@ class Processor {
   }
 
   incrementStep() {
+    // 現在のパイプラインの状態をディープコピーして保存
+    const pipelineSnapshot = {};
+    Object.keys(this.pipeline).forEach((key) => {
+      pipelineSnapshot[key] = {
+        instruction: this.pipeline[key].instruction
+          ? { ...this.pipeline[key].instruction }
+          : null,
+      };
+    });
+
     this.history.push({
       step: this.step,
       pc: this.pc,
-      pipeline: [...this.pipeline],
+      pipeline: pipelineSnapshot,
     });
 
     this.step++;
 
-    const nextPipeline = [...this.pipeline];
+    // パイプラインを後ろから更新する (WB <- MEM <- EX <- ID <- IF)
+    const stages = [
+      this.pipeline.WB,
+      this.pipeline.MEM,
+      this.pipeline.EX,
+      this.pipeline.ID,
+      this.pipeline.IF,
+    ];
 
-    // WBステージへ移動 (常に進む)
-    nextPipeline[4] = this.pipeline[3];
-
-    // ハザード検知 (EXステージとMEMステージの競合)
-    const exInstr = this.pipeline[2];
-    const memInstr = this.pipeline[3];
-    let stall = false;
-
-    if (exInstr && memInstr) {
-      stall =
-        memInstr.rd &&
-        (memInstr.rd === exInstr.rs1 || memInstr.rd === exInstr.rs2);
+    for (const stage of stages) {
+      stage?.advance();
     }
 
-    if (stall) {
-      // ストール発生: MEMステージにバブルを挿入し、後続(EX, ID, IF)は進めない
-      nextPipeline[3] = null;
-      nextPipeline[2] = this.pipeline[2];
-      nextPipeline[1] = this.pipeline[1];
-      nextPipeline[0] = this.pipeline[0];
-      // PCは進まない
+    // IFステージに新しい命令をフェッチ
+    if (this.pc < this.instructions.length) {
+      this.pipeline.IF.setInstruction(
+        this.instructions[this.pc].operation,
+        this.instructions[this.pc].rd,
+        this.instructions[this.pc].rs1,
+        this.instructions[this.pc].rs2,
+      );
+      this.pc++;
     } else {
-      // 通常動作: 各ステージを進める
-      nextPipeline[3] = this.pipeline[2];
-      nextPipeline[2] = this.pipeline[1];
-      nextPipeline[1] = this.pipeline[0];
-
-      // IFステージに新しい命令をフェッチ
-      if (this.pc < this.instructions.length) {
-        nextPipeline[0] = this.instructions[this.pc];
-        this.pc++;
-      } else {
-        nextPipeline[0] = null;
-      }
+      this.pipeline.IF.clear();
     }
-
-    this.pipeline = nextPipeline;
   }
 
   decrementStep() {
@@ -67,14 +142,22 @@ class Processor {
       const prevState = this.history.pop();
       this.step = prevState.step;
       this.pc = prevState.pc;
-      this.pipeline = prevState.pipeline;
+
+      Object.keys(this.pipeline).forEach((stageName) => {
+        const savedStage = prevState.pipeline[stageName];
+        this.pipeline[stageName].instruction = savedStage.instruction;
+      });
     }
   }
 
   resetProgramCounter() {
     this.step = 0;
     this.pc = 0;
-    this.pipeline = [null, null, null, null, null];
+    if (this.pipeline) {
+      Object.values(this.pipeline).forEach((stage) => {
+        stage.clear();
+      });
+    }
     this.history = [];
   }
 
@@ -91,29 +174,45 @@ class Processor {
   }
 
   getHazardDetails() {
-    const exInstr = this.pipeline[2];
-    const memInstr = this.pipeline[3];
+    const idInstr = this.pipeline.ID.instruction;
     const details = {
       detected: false,
-      causes: [], // { stage: 'mem'|'ex', regType: 'rd'|'rs1'|'rs2' }
+      causes: [], // { stage: 'mem'|'ex'|'wb'|'id', regType: 'rd'|'rs1'|'rs2' }
     };
 
-    if (exInstr && memInstr && memInstr.rd) {
-      if (memInstr.rd === exInstr.rs1) {
-        details.detected = true;
-        details.causes.push({ stage: "mem", regType: "rd" });
-        details.causes.push({ stage: "ex", regType: "rs1" });
-      }
-      if (memInstr.rd === exInstr.rs2) {
-        details.detected = true;
-        details.causes.push({ stage: "mem", regType: "rd" });
-        details.causes.push({ stage: "ex", regType: "rs2" });
+    if (!idInstr) {
+      return details;
+    }
+
+    const dependStages = [
+      this.pipeline.EX,
+      this.pipeline.MEM,
+      this.pipeline.WB,
+    ];
+
+    for (const stage of dependStages) {
+      const instr = stage.instruction;
+      if (instr?.rd) {
+        if (instr.rd === idInstr.rs1) {
+          details.detected = true;
+          details.causes.push({ stage: stage.name, regType: "rd" });
+          details.causes.push({ stage: "ID", regType: "rs1" });
+        }
+
+        if (instr.rd === idInstr.rs2) {
+          details.detected = true;
+          details.causes.push({ stage: stage.name, regType: "rd" });
+          details.causes.push({ stage: "ID", regType: "rs2" });
+        }
       }
     }
     return details;
   }
 
   checkHazard() {
+    if (this.pipeline.ID.checkDataHazard()) {
+      alert("Data hazard detected!");
+    }
     return this.getHazardDetails().detected;
   }
 }
