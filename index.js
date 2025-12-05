@@ -19,6 +19,10 @@ const updatePipeline = () => {
   });
 
   document.getElementById("currentStep").textContent = step;
+
+  if (processor.checkHazard()) {
+    alert("Data hazard detected between EX and MEM stages!");
+  }
 };
 
 document
