@@ -40,21 +40,35 @@ class Stage {
   }
 
   checkDataHazard() {
+    return this.getHazardDetails().detected;
+  }
+
+  getHazardDetails() {
+    const details = {
+      detected: false,
+      causes: [],
+    };
+
+    if (!this.instruction) {
+      return details;
+    }
+
     for (const dependStage of this.dependStages) {
-      if (
-        this.instruction &&
-        dependStage.instruction &&
-        dependStage.instruction.rd
-      ) {
-        if (
-          dependStage.instruction.rd === this.instruction.rs1 ||
-          dependStage.instruction.rd === this.instruction.rs2
-        ) {
-          return true;
+      const dependInstr = dependStage.instruction;
+      if (dependInstr?.rd) {
+        if (dependInstr.rd === this.instruction.rs1) {
+          details.detected = true;
+          details.causes.push({ stage: dependStage.name, regType: "rd" });
+          details.causes.push({ stage: this.name, regType: "rs1" });
+        }
+        if (dependInstr.rd === this.instruction.rs2) {
+          details.detected = true;
+          details.causes.push({ stage: dependStage.name, regType: "rd" });
+          details.causes.push({ stage: this.name, regType: "rs2" });
         }
       }
     }
-    return false;
+    return details;
   }
 }
 
@@ -171,49 +185,6 @@ class Processor {
 
   getAllInstructions() {
     return this.instructions;
-  }
-
-  getHazardDetails() {
-    const idInstr = this.pipeline.ID.instruction;
-    const details = {
-      detected: false,
-      causes: [], // { stage: 'mem'|'ex'|'wb'|'id', regType: 'rd'|'rs1'|'rs2' }
-    };
-
-    if (!idInstr) {
-      return details;
-    }
-
-    const dependStages = [
-      this.pipeline.EX,
-      this.pipeline.MEM,
-      this.pipeline.WB,
-    ];
-
-    for (const stage of dependStages) {
-      const instr = stage.instruction;
-      if (instr?.rd) {
-        if (instr.rd === idInstr.rs1) {
-          details.detected = true;
-          details.causes.push({ stage: stage.name, regType: "rd" });
-          details.causes.push({ stage: "ID", regType: "rs1" });
-        }
-
-        if (instr.rd === idInstr.rs2) {
-          details.detected = true;
-          details.causes.push({ stage: stage.name, regType: "rd" });
-          details.causes.push({ stage: "ID", regType: "rs2" });
-        }
-      }
-    }
-    return details;
-  }
-
-  checkHazard() {
-    if (this.pipeline.ID.checkDataHazard()) {
-      alert("Data hazard detected!");
-    }
-    return this.getHazardDetails().detected;
   }
 }
 

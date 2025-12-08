@@ -27,7 +27,7 @@ const updatePipeline = () => {
   document.getElementById("currentStep").textContent = step;
 
   // ハザードのハイライト処理
-  const hazardDetails = processor.getHazardDetails();
+  const hazardDetails = processor.getPipeline().ID.getHazardDetails();
   if (hazardDetails.detected) {
     hazardDetails.causes.forEach((cause) => {
       const cell = document.querySelector(
