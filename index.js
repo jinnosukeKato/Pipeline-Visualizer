@@ -107,4 +107,22 @@ document.getElementById("resetButton").addEventListener("click", () => {
   updatePipeline();
 });
 
+document.addEventListener("keydown", (event) => {
+  switch (event.key) {
+    case "ArrowRight":
+      processor.incrementStep();
+      updatePipeline();
+      break;
+    case "ArrowLeft":
+      processor.decrementStep();
+      updatePipeline();
+      break;
+    case " ":
+      event.preventDefault();
+      processor.resetProgramCounter();
+      updatePipeline();
+      break;
+  }
+});
+
 updatePipeline();
