@@ -17,7 +17,11 @@ const updatePipeline = () => {
       const instr = stageObj ? stageObj.getInstruction() : null;
 
       if (instr) {
-        cell.innerHTML = `<span class="op">${instr.operation}</span> <span class="rd">${instr.rd}</span>, <span class="rs1">${instr.rs1}</span>, <span class="rs2">${instr.rs2}</span>`;
+        if (instr.operation === "NOP") {
+          cell.innerHTML = `<span class="op">NOP</span>`;
+        } else {
+          cell.innerHTML = `<span class="op">${instr.operation}</span> <span class="rd">${instr.rd}</span>, <span class="rs1">${instr.rs1}</span>, <span class="rs2">${instr.rs2}</span>`;
+        }
       } else {
         cell.innerHTML = "";
       }
@@ -43,32 +47,60 @@ const updatePipeline = () => {
   }
 };
 
+// NOP命令選択時にオペランド入力を無効化
+document.getElementById("operationInput").addEventListener("change", (e) => {
+  const isNOP = e.target.value === "NOP";
+  document.getElementById("operandInput_1").disabled = isNOP;
+  document.getElementById("operandInput_2").disabled = isNOP;
+  document.getElementById("operandInput_3").disabled = isNOP;
+});
+
 document
   .getElementById("addInstructionButton")
   .addEventListener("click", () => {
-    const operation = document.getElementById("operationInput");
-    const rd = document.getElementById("operandInput_1");
-    const rs1 = document.getElementById("operandInput_2");
-    const rs2 = document.getElementById("operandInput_3");
+    const op_input = document.getElementById("operationInput");
+    const rd_input = document.getElementById("operandInput_1");
+    const rs1_input = document.getElementById("operandInput_2");
+    const rs2_input = document.getElementById("operandInput_3");
 
-    if (!operation.value || !rd.value || !rs1.value || !rs2.value) {
+    // NOP以外の命令でオペランドが未指定の場合は追加しない
+    if (
+      op_input.value !== "NOP" &&
+      (!rd_input.value || !rs1_input.value || !rs2_input.value)
+    ) {
       return;
     }
 
-    processor.addInstruction(operation.value, rd.value, rs1.value, rs2.value);
+    if (op_input.value === "NOP") {
+      processor.addInstruction("NOP", null, null, null);
+    } else {
+      processor.addInstruction(
+        op_input.value,
+        rd_input.value,
+        rs1_input.value,
+        rs2_input.value,
+      );
+    }
 
     document.getElementById("instructions").textContent = processor
       .getAllInstructions()
-      .map(
-        (instr, l) =>
-          `${l}: ${instr.operation} ${instr.rd}, ${instr.rs1}, ${instr.rs2}`,
-      )
+      .map((instr, l) => {
+        if (instr.operation === "NOP") {
+          return `${l}: NOP`;
+        }
+
+        return `${l}: ${instr.operation} ${instr.rd}, ${instr.rs1}, ${instr.rs2}`;
+      })
       .join("\n");
 
-    operation.value = "";
-    rd.value = "";
-    rs1.value = "";
-    rs2.value = "";
+    op_input.value = "";
+    rd_input.value = "";
+    rs1_input.value = "";
+    rs2_input.value = "";
+
+    rd_input.disabled = false;
+    rs1_input.disabled = false;
+    rs2_input.disabled = false;
 
     processor.resetProgramCounter();
     updatePipeline();
