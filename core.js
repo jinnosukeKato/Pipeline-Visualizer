@@ -25,7 +25,10 @@ class Stage {
   }
 
   advance() {
-    if (this.checkDataHazard() === true) {
+    if (
+      this.checkDataHazard() === true ||
+      this.nextStage?.checkDataHazard() === true
+    ) {
       return;
     }
 
@@ -143,8 +146,11 @@ class Processor {
       stage?.advance();
     }
 
-    // IFステージに新しい命令をフェッチ
-    if (this.pc < this.instructions.length) {
+    // パイプライン前進後にIFステージに新しい命令をフェッチ
+    if (
+      this.pipeline.IF.instruction === null &&
+      this.pc < this.instructions.length
+    ) {
       this.pipeline.IF.setInstruction(
         this.instructions[this.pc].operation,
         this.instructions[this.pc].rd,
@@ -152,8 +158,6 @@ class Processor {
         this.instructions[this.pc].rs2,
       );
       this.pc++;
-    } else {
-      this.pipeline.IF.clear();
     }
   }
 
