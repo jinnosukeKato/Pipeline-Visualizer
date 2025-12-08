@@ -139,6 +139,11 @@ document.getElementById("resetButton").addEventListener("click", () => {
   updatePipeline();
 });
 
+document.getElementById("forwardingToggle").addEventListener("change", (e) => {
+  processor.setForwarding(e.target.checked);
+  updatePipeline();
+});
+
 document.addEventListener("keydown", (event) => {
   switch (event.key) {
     case "ArrowRight":

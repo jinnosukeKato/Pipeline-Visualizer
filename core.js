@@ -4,6 +4,7 @@ class Stage {
     this.instruction = null;
     this.nextStage = nextStage;
     this.dependStages = dependStages || [];
+    this.forwardingEnabled = false;
   }
 
   setInstruction(operation, rd, rs1, rs2) {
@@ -54,6 +55,11 @@ class Stage {
     }
 
     for (const dependStage of this.dependStages) {
+      // Forwarding logic: if enabled and stage is MEM, skip hazard check
+      if (this.forwardingEnabled && dependStage.name === "WB") {
+        continue;
+      }
+
       const dependInstr = dependStage.instruction;
       if (dependInstr?.rd) {
         if (dependInstr.rd === this.instruction.rs1) {
@@ -190,6 +196,12 @@ class Processor {
 
   getAllInstructions() {
     return this.instructions;
+  }
+
+  setForwarding(enabled) {
+    Object.values(this.pipeline).forEach((stage) => {
+      stage.forwardingEnabled = enabled;
+    });
   }
 }
 
