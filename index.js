@@ -74,6 +74,24 @@ document
     updatePipeline();
   });
 
+document
+  .getElementById("loadHazardExampleButton")
+  .addEventListener("click", () => {
+    processor.clearInstructions();
+    processor.addInstruction("ADD", "R1", "R2", "R3");
+    processor.addInstruction("SUB", "R4", "R1", "R5");
+
+    document.getElementById("instructions").textContent = processor
+      .getAllInstructions()
+      .map(
+        (instr, l) =>
+          `${l}: ${instr.operation} ${instr.rd}, ${instr.rs1}, ${instr.rs2}`,
+      )
+      .join("\n");
+
+    updatePipeline();
+  });
+
 document.getElementById("nextButton").addEventListener("click", () => {
   processor.incrementStep();
   updatePipeline();

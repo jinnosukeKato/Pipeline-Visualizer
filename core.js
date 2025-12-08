@@ -179,6 +179,11 @@ class Processor {
     this.instructions.push({ operation, rd, rs1, rs2 });
   }
 
+  clearInstructions() {
+    this.instructions = [];
+    this.resetProgramCounter();
+  }
+
   getInstruction(index) {
     return this.instructions[index];
   }
