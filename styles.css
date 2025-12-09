@@ -1,5 +1,14 @@
+:root {
+  --app-width: 70vw;
+  --bg-color: #f8f8f8;
+  --border-color: #ccc;
+  --hazard-color: red;
+  --cell-height: 3em;
+  --cell-padding: 8px;
+}
+
 #app {
-  width: 70vw;
+  width: var(--app-width);
 }
 
 .pipeline-table {
@@ -10,19 +19,18 @@
 
   th,
   td {
-    border: 1px solid #000;
-    padding: 8px;
+    border: 1px solid;
+    padding: var(--cell-padding);
     text-align: center;
   }
 
   th {
-    background-color: #f0f0f0;
+    background-color: var(--bg-color);
     font-weight: bold;
   }
 
   .cell {
-    height: 3em;
-    background-color: #fff;
+    height: var(--cell-height);
 
     span {
       margin: 0 2px;
@@ -31,14 +39,14 @@
 }
 
 .hazard {
-  color: red;
+  color: var(--hazard-color);
   font-weight: bold;
   text-decoration: underline;
 }
 
 pre {
-  background-color: #f8f8f8;
+  background-color: var(--bg-color);
   padding: 10px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
   overflow-y: auto;
 }
