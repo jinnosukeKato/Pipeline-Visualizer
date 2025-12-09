@@ -8,9 +8,7 @@ const updatePipeline = () => {
   const stages = ["IF", "ID", "EX", "MEM", "WB"];
 
   stages.forEach((stage) => {
-    const cell = document.querySelector(
-      `.pipeline-table .cell.${stage.toLowerCase()}`,
-    );
+    const cell = document.getElementById(`stage-${stage.toLowerCase()}`);
 
     if (cell) {
       cell.classList.remove("hazard-cell");
@@ -35,8 +33,8 @@ const updatePipeline = () => {
   const hazardDetails = processor.getHazardDetails();
   if (hazardDetails.hazardDetected) {
     hazardDetails.causes.forEach((cause) => {
-      const cell = document.querySelector(
-        `.pipeline-table .cell.${cause.stage.toLowerCase()}`,
+      const cell = document.getElementById(
+        `stage-${cause.stage.toLowerCase()}`,
       );
       if (cell) {
         cell.classList.add("hazard-cell");
