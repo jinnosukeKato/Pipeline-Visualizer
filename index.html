@@ -14,15 +14,29 @@
 
         <div>
             <h2>命令入力</h2>
-            <select id="operationInput">
-                <option value="ADD">ADD</option>
-                <option value="SUB">SUB</option>
-                <option value="NOP">NOP</option>
-            </select>
-            <register-input id="operandInput_1"></register-input>
-            <register-input id="operandInput_2"></register-input>
-            <register-input id="operandInput_3"></register-input>
-            <button id="addInstructionButton">追加</button>
+            <div class="input-group">
+                <div class="input-field">
+                    <label for="operationInput">命令</label>
+                    <select id="operationInput">
+                        <option value="ADD">ADD</option>
+                        <option value="SUB">SUB</option>
+                        <option value="NOP">NOP</option>
+                    </select>
+                </div>
+                <div class="input-field">
+                    <label for="operandInput_1">rd</label>
+                    <register-input id="operandInput_1"></register-input>
+                </div>
+                <div class="input-field">
+                    <label for="operandInput_2">rs1</label>
+                    <register-input id="operandInput_2"></register-input>
+                </div>
+                <div class="input-field">
+                    <label for="operandInput_3">rs2</label>
+                    <register-input id="operandInput_3"></register-input>
+                </div>
+                <button id="addInstructionButton">追加</button>
+            </div>
             <button id="loadHazardExampleButton">データハザードの例をロード</button>
 
             <h2>命令リスト</h2>

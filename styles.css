@@ -50,3 +50,20 @@ pre {
   border: 1px solid var(--border-color);
   overflow-y: auto;
 }
+
+.input-group {
+  display: flex;
+  gap: 1em;
+  align-items: flex-end;
+  margin-bottom: 10px;
+
+  .input-field {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    label {
+      margin-bottom: 2px;
+    }
+  }
+}
