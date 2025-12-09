@@ -46,21 +46,6 @@
 
         <div>
             <h2>パイプライン</h2>
-            <div class="pipeline-controls">
-                <div class="step-controls">
-                    <button id="prevButton">前へ</button>
-                    <span class="step-display">Step: <span id="currentStep">0</span></span>
-                    <button id="nextButton">次へ</button>
-                    <button id="resetButton">リセット</button>
-                </div>
-
-                <div id="settings-controls">
-                    <label>
-                        <input type="checkbox" id="forwardingToggle"> フォワーディング有効化 (ID ← MEM)
-                    </label>
-                </div>
-            </div>
-
             <table class="pipeline-table">
                 <thead>
                     <tr>
@@ -81,6 +66,20 @@
                     </tr>
                 </tbody>
             </table>
+            <div class="pipeline-controls">
+                <div class="step-controls">
+                    <button id="prevButton">前へ</button>
+                    <span class="step-display">Step: <span id="currentStep">0</span></span>
+                    <button id="nextButton">次へ</button>
+                    <button id="resetButton">リセット</button>
+                </div>
+
+                <div id="settings-controls">
+                    <label>
+                        <input type="checkbox" id="forwardingToggle"> フォワーディング有効化 (ID ← MEM)
+                    </label>
+                </div>
+            </div>
         </div>
     </div>
 </body>
