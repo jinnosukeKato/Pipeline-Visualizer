@@ -107,6 +107,14 @@ document
   });
 
 document
+  .getElementById("clearInstructionsButton")
+  .addEventListener("click", () => {
+    processor.clearInstructions();
+    document.getElementById("instructions").textContent = "";
+    updatePipeline();
+  });
+
+document
   .getElementById("loadHazardExampleButton")
   .addEventListener("click", () => {
     processor.clearInstructions();
