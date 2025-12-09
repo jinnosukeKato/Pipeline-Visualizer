@@ -2,32 +2,32 @@
   width: 70vw;
 }
 
-.pipeline-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
+.pipeline-table {
+  width: 100%;
+  border-collapse: collapse;
   margin-top: 10px;
-}
+  table-layout: fixed;
 
-.pipeline-grid .header {
-  background-color: #f0f0f0;
-  font-weight: bold;
-  text-align: center;
-  padding: 8px;
-  border: 1px solid #000;
-}
+  th,
+  td {
+    border: 1px solid #000;
+    padding: 8px;
+    text-align: center;
+  }
 
-.pipeline-grid .cell {
-  border: 1px solid #000;
-  height: 3em;
-  background-color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+  th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+  }
 
-.pipeline-grid .cell span {
-  margin: 0 2px;
+  .cell {
+    height: 3em;
+    background-color: #fff;
+
+    span {
+      margin: 0 2px;
+    }
+  }
 }
 
 .hazard {

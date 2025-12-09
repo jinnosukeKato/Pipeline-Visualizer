@@ -9,7 +9,7 @@ const updatePipeline = () => {
 
   stages.forEach((stage) => {
     const cell = document.querySelector(
-      `.pipeline-grid .cell.${stage.toLowerCase()}`,
+      `.pipeline-table .cell.${stage.toLowerCase()}`,
     );
 
     if (cell) {
@@ -35,7 +35,7 @@ const updatePipeline = () => {
   if (hazardDetails.hazardDetected) {
     hazardDetails.causes.forEach((cause) => {
       const cell = document.querySelector(
-        `.pipeline-grid .cell.${cause.stage.toLowerCase()}`,
+        `.pipeline-table .cell.${cause.stage.toLowerCase()}`,
       );
       if (cell) {
         const span = cell.querySelector(`.${cause.regType}`);
