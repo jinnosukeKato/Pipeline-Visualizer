@@ -1,19 +1,22 @@
 class Stage {
-  constructor(name, nextStage = null, dependStages = null) {
+  constructor(name) {
     this.name = name;
     this.instruction = null;
-    this.nextStage = nextStage;
-    this.dependStages = dependStages || [];
-    this.forwardingEnabled = false;
   }
 
   setInstruction(operation, rd, rs1, rs2) {
-    this.instruction = {
-      operation,
-      rd,
-      rs1,
-      rs2,
-    };
+    this.instruction = operation
+      ? {
+          operation,
+          rd,
+          rs1,
+          rs2,
+        }
+      : null;
+  }
+
+  setInstructionDirect(instruction) {
+    this.instruction = instruction;
   }
 
   getInstruction() {
@@ -23,68 +26,71 @@ class Stage {
   clear() {
     this.instruction = null;
   }
+}
 
-  advance() {
-    if (
-      this.checkDataHazard() === true ||
-      this.nextStage?.checkDataHazard() === true
-    ) {
-      return;
-    }
-
-    if (this.nextStage && this.instruction) {
-      this.nextStage.setInstruction(
-        this.instruction.operation,
-        this.instruction.rd,
-        this.instruction.rs1,
-        this.instruction.rs2,
-      );
-    }
-    this.clear();
-  }
-
-  checkDataHazard() {
-    return this.getHazardDetails().detected;
-  }
-
-  getHazardDetails() {
+class HazardUnit {
+  detect(pipeline, forwardingEnabled) {
     const details = {
-      detected: false,
+      hazardDetected: false,
+      shouldStall: false,
       causes: [],
     };
 
-    if (!this.instruction) {
-      return details;
+    this.checkDataHazard(pipeline, forwardingEnabled, details);
+
+    return details;
+  }
+
+  checkDataHazard(pipeline, forwardingEnabled, details) {
+    const idInstr = pipeline.ID.instruction;
+    if (!idInstr) {
+      return;
     }
 
-    for (const dependStage of this.dependStages) {
-      // Forwarding logic: if enabled and stage is MEM, skip hazard check
-      if (this.forwardingEnabled && dependStage.name === "WB") {
+    // 依存する先行命令が存在するかチェックするステージ
+    const dependStages = [pipeline.EX, pipeline.MEM];
+
+    for (const dependStage of dependStages) {
+      const dependInstr = dependStage.instruction;
+      if (!dependInstr || !dependInstr.rd) {
         continue;
       }
 
-      const dependInstr = dependStage.instruction;
-      if (dependInstr?.rd) {
-        if (dependInstr.rd === this.instruction.rs1) {
-          details.detected = true;
-          details.causes.push({ stage: dependStage.name, regType: "rd" });
-          details.causes.push({ stage: this.name, regType: "rs1" });
-        }
-        if (dependInstr.rd === this.instruction.rs2) {
-          details.detected = true;
-          details.causes.push({ stage: dependStage.name, regType: "rd" });
-          details.causes.push({ stage: this.name, regType: "rs2" });
-        }
+      // フォワーディング有効時、チェック対象のステージがMEMの場合は
+      // フォワーディングによって解決可能なのでスキップ
+      if (forwardingEnabled && dependStage === pipeline.MEM) {
+        continue;
+      }
+
+      let hazardFound = false;
+
+      // RS1 との競合チェック
+      if (dependInstr.rd === idInstr.rs1) {
+        details.causes.push({ stage: dependStage.name, regType: "rd" });
+        details.causes.push({ stage: "ID", regType: "rs1" });
+        hazardFound = true;
+      }
+
+      // RS2 との競合チェック
+      if (dependInstr.rd === idInstr.rs2) {
+        details.causes.push({ stage: dependStage.name, regType: "rd" });
+        details.causes.push({ stage: "ID", regType: "rs2" });
+        hazardFound = true;
+      }
+
+      if (hazardFound) {
+        details.hazardDetected = true;
+        details.shouldStall = true;
       }
     }
-    return details;
   }
 }
 
 class Processor {
   constructor(instructions) {
     this.instructions = instructions || [];
-    this.resetProgramCounter();
+    this.hazardUnit = new HazardUnit();
+    this.forwardingEnabled = false;
 
     this.pipeline = {
       IF: new Stage("IF"),
@@ -94,16 +100,11 @@ class Processor {
       WB: new Stage("WB"),
     };
 
-    this.pipeline.IF.nextStage = this.pipeline.ID;
-    this.pipeline.ID.nextStage = this.pipeline.EX;
-    this.pipeline.EX.nextStage = this.pipeline.MEM;
-    this.pipeline.MEM.nextStage = this.pipeline.WB;
+    this.resetProgramCounter();
+  }
 
-    this.pipeline.ID.dependStages = [
-      this.pipeline.EX,
-      this.pipeline.MEM,
-      this.pipeline.WB,
-    ];
+  setForwarding(enabled) {
+    this.forwardingEnabled = enabled;
   }
 
   getStep() {
@@ -114,50 +115,42 @@ class Processor {
     return this.pipeline;
   }
 
+  getHazardDetails() {
+    return this.hazardUnit.detect(this.pipeline, this.forwardingEnabled);
+  }
+
   incrementStep() {
-    // 現在のパイプラインの状態をディープコピーして保存
-    const pipelineSnapshot = {};
-    Object.keys(this.pipeline).forEach((key) => {
-      pipelineSnapshot[key] = {
-        instruction: this.pipeline[key].instruction
-          ? { ...this.pipeline[key].instruction }
-          : null,
-      };
-    });
+    this.saveHistory(); // 巻き戻しのための履歴保存
+    this.step++; // 先にステップを進める
 
-    this.history.push({
-      step: this.step,
-      pc: this.pc,
-      pipeline: pipelineSnapshot,
-    });
+    // ハザード検出
+    const hazardDetails = this.hazardUnit.detect(
+      this.pipeline,
+      this.forwardingEnabled,
+    );
 
-    this.step++;
+    // 後ろからパイプラインを更新していく
+    this.pipeline.WB.setInstructionDirect(this.pipeline.MEM.getInstruction());
+    this.pipeline.MEM.setInstructionDirect(this.pipeline.EX.getInstruction());
+    if (hazardDetails.shouldStall) {
+      this.pipeline.EX.clear();
+    } else {
+      this.pipeline.EX.setInstructionDirect(this.pipeline.ID.getInstruction());
+      this.pipeline.ID.setInstructionDirect(this.pipeline.IF.getInstruction());
 
-    // パイプラインを後ろから更新する (WB <- MEM <- EX <- ID <- IF)
-    const stages = [
-      this.pipeline.WB,
-      this.pipeline.MEM,
-      this.pipeline.EX,
-      this.pipeline.ID,
-      this.pipeline.IF,
-    ];
-
-    for (const stage of stages) {
-      stage?.advance();
-    }
-
-    // パイプライン前進後にIFステージに新しい命令をフェッチ
-    if (
-      this.pipeline.IF.instruction === null &&
-      this.pc < this.instructions.length
-    ) {
-      this.pipeline.IF.setInstruction(
-        this.instructions[this.pc].operation,
-        this.instructions[this.pc].rd,
-        this.instructions[this.pc].rs1,
-        this.instructions[this.pc].rs2,
-      );
-      this.pc++;
+      // IFステージの命令フェッチ
+      if (this.pc < this.instructions.length) {
+        const nextInstr = this.instructions[this.pc];
+        this.pipeline.IF.setInstruction(
+          nextInstr.operation,
+          nextInstr.rd,
+          nextInstr.rs1,
+          nextInstr.rs2,
+        );
+        this.pc++;
+      } else {
+        this.pipeline.IF.clear();
+      }
     }
   }
 
@@ -168,21 +161,37 @@ class Processor {
       this.pc = prevState.pc;
 
       Object.keys(this.pipeline).forEach((stageName) => {
-        const savedStage = prevState.pipeline[stageName];
-        this.pipeline[stageName].instruction = savedStage.instruction;
+        this.pipeline[stageName].setInstructionDirect(
+          prevState.pipeline[stageName].instruction,
+        );
       });
     }
+  }
+
+  saveHistory() {
+    const pipelineSnapshot = {};
+    Object.keys(this.pipeline).forEach((stageName) => {
+      pipelineSnapshot[stageName] = {
+        instruction: this.pipeline[stageName].getInstruction(),
+      };
+    });
+
+    this.history.push({
+      step: this.step,
+      pc: this.pc,
+      pipeline: pipelineSnapshot,
+    });
   }
 
   resetProgramCounter() {
     this.step = 0;
     this.pc = 0;
+    this.history = [];
     if (this.pipeline) {
       Object.values(this.pipeline).forEach((stage) => {
         stage.clear();
       });
     }
-    this.history = [];
   }
 
   addInstruction(operation, rd, rs1, rs2) {
@@ -194,18 +203,8 @@ class Processor {
     this.resetProgramCounter();
   }
 
-  getInstruction(index) {
-    return this.instructions[index];
-  }
-
   getAllInstructions() {
     return this.instructions;
-  }
-
-  setForwarding(enabled) {
-    Object.values(this.pipeline).forEach((stage) => {
-      stage.forwardingEnabled = enabled;
-    });
   }
 }
 

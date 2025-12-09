@@ -31,8 +31,8 @@ const updatePipeline = () => {
   document.getElementById("currentStep").textContent = step;
 
   // ハザードのハイライト処理
-  const hazardDetails = processor.getPipeline().ID.getHazardDetails();
-  if (hazardDetails.detected) {
+  const hazardDetails = processor.getHazardDetails();
+  if (hazardDetails.hazardDetected) {
     hazardDetails.causes.forEach((cause) => {
       const cell = document.querySelector(
         `.pipeline-grid .cell.${cause.stage.toLowerCase()}`,
