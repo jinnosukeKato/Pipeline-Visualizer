@@ -7,6 +7,7 @@
 </head>
 <body>
     <script type="module" src="index.js" defer></script>
+    <script type="module" src="register-input.js" defer></script>
 
     <div id="app">
         <h1>Pipeline Visualizer</h1>
@@ -18,27 +19,9 @@
                 <option value="SUB">SUB</option>
                 <option value="NOP">NOP</option>
             </select>
-            <select id="operandInput_1">
-                <option value="R1">R1</option>
-                <option value="R2">R2 </option>
-                <option value="R3">R3</option>
-                <option value="R4">R4</option>
-                <option value="R5">R5</option>
-            </select>
-            <select id="operandInput_2">
-                <option value="R1">R1</option>
-                <option value="R2">R2 </option>
-                <option value="R3">R3</option>
-                <option value="R4">R4</option>
-                <option value="R5">R5</option>
-            </select>
-            <select id="operandInput_3">
-                <option value="R1">R1</option>
-                <option value="R2">R2 </option>
-                <option value="R3">R3</option>
-                <option value="R4">R4</option>
-                <option value="R5">R5</option>
-            </select>
+            <register-input id="operandInput_1"></register-input>
+            <register-input id="operandInput_2"></register-input>
+            <register-input id="operandInput_3"></register-input>
             <button id="addInstructionButton">追加</button>
             <button id="loadHazardExampleButton">データハザードの例をロード</button>
 
