@@ -9,6 +9,7 @@
 
 #app {
   width: var(--app-width);
+  margin: 0 auto;
 }
 
 pre {
