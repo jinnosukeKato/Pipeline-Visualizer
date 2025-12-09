@@ -13,6 +13,7 @@ const updatePipeline = () => {
     );
 
     if (cell) {
+      cell.classList.remove("hazard-cell");
       const stageObj = pipeline[stage];
       const instr = stageObj ? stageObj.getInstruction() : null;
 
@@ -38,6 +39,7 @@ const updatePipeline = () => {
         `.pipeline-table .cell.${cause.stage.toLowerCase()}`,
       );
       if (cell) {
+        cell.classList.add("hazard-cell");
         const span = cell.querySelector(`.${cause.regType}`);
         if (span) {
           span.classList.add("hazard");
