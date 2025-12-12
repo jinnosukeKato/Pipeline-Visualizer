@@ -1,14 +1,11 @@
 :root {
-  --app-width: 95vw;
   --bg-color: #f8f8f8;
   --border-color: #ccc;
   --hazard-color: red;
-  --cell-height: 3em;
-  --cell-padding: 8px;
 }
 
 #app {
-  width: var(--app-width);
+  width: 95vw;
   margin: 0 auto;
 }
 
@@ -28,7 +25,7 @@ pre {
   th,
   td {
     border: 1px solid;
-    padding: var(--cell-padding);
+    padding: 8px;
     text-align: center;
   }
 
@@ -37,7 +34,7 @@ pre {
   }
 
   .cell {
-    height: var(--cell-height);
+    height: 3em;
 
     span {
       margin: 0 2px;
