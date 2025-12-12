@@ -107,8 +107,8 @@ class Processor {
     this.forwardingEnabled = enabled;
   }
 
-  getStep() {
-    return this.step;
+  getCycle() {
+    return this.cycle;
   }
 
   getPipeline() {
@@ -119,9 +119,9 @@ class Processor {
     return this.hazardUnit.detect(this.pipeline, this.forwardingEnabled);
   }
 
-  incrementStep() {
+  incrementCycle() {
     this.saveHistory(); // 巻き戻しのための履歴保存
-    this.step++; // 先にステップを進める
+    this.cycle++; // 先にサイクルを進める
 
     // ハザード検出
     const hazardDetails = this.hazardUnit.detect(
@@ -154,10 +154,10 @@ class Processor {
     }
   }
 
-  decrementStep() {
+  decrementCycle() {
     if (this.history.length > 0) {
       const prevState = this.history.pop();
-      this.step = prevState.step;
+      this.cycle = prevState.cycle;
       this.pc = prevState.pc;
 
       Object.keys(this.pipeline).forEach((stageName) => {
@@ -177,14 +177,14 @@ class Processor {
     });
 
     this.history.push({
-      step: this.step,
+      cycle: this.cycle,
       pc: this.pc,
       pipeline: pipelineSnapshot,
     });
   }
 
   resetProgramCounter() {
-    this.step = 0;
+    this.cycle = 0;
     this.pc = 0;
     this.history = [];
     if (this.pipeline) {

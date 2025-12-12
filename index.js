@@ -3,7 +3,7 @@ import Processor from "./core.js";
 const processor = new Processor();
 
 const updatePipeline = () => {
-  const step = processor.getStep();
+  const cycle = processor.getCycle();
   const pipeline = processor.getPipeline();
   const stages = ["IF", "ID", "EX", "MEM", "WB"];
 
@@ -27,7 +27,7 @@ const updatePipeline = () => {
     }
   });
 
-  document.getElementById("currentStep").textContent = step;
+  document.getElementById("currentCycle").textContent = cycle;
 
   // ハザードのハイライト処理
   const hazardDetails = processor.getHazardDetails();
@@ -133,12 +133,12 @@ document
   });
 
 document.getElementById("nextButton").addEventListener("click", () => {
-  processor.incrementStep();
+  processor.incrementCycle();
   updatePipeline();
 });
 
 document.getElementById("prevButton").addEventListener("click", () => {
-  processor.decrementStep();
+  processor.decrementCycle();
   updatePipeline();
 });
 
@@ -155,11 +155,11 @@ document.getElementById("forwardingToggle").addEventListener("change", (e) => {
 document.addEventListener("keydown", (event) => {
   switch (event.key) {
     case "ArrowRight":
-      processor.incrementStep();
+      processor.incrementCycle();
       updatePipeline();
       break;
     case "ArrowLeft":
-      processor.decrementStep();
+      processor.decrementCycle();
       updatePipeline();
       break;
     case " ":

@@ -82,13 +82,13 @@ pre {
   align-items: center;
 }
 
-.step-controls {
+.cycle-controls {
   display: flex;
   align-items: center;
   gap: 15px;
 }
 
-.step-display {
+.cycle-display {
   font-size: 1.2em;
   min-width: 100px;
   text-align: center;
