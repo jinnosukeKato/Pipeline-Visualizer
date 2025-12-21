@@ -38,26 +38,32 @@ class Stage {
 }
 
 class HazardUnit {
-  detect(pipeline, forwardingEnabled) {
+  #pipeline = null;
+
+  constructor(pipeline) {
+    this.#pipeline = pipeline;
+  }
+
+  detect(forwardingEnabled) {
     const details = {
       hazardDetected: false,
       shouldStall: false,
       causes: [],
     };
 
-    this.checkDataHazard(pipeline, forwardingEnabled, details);
+    this.checkDataHazard(forwardingEnabled, details);
 
     return details;
   }
 
-  checkDataHazard(pipeline, forwardingEnabled, details) {
-    const idInstr = pipeline.ID.instruction;
+  checkDataHazard(forwardingEnabled, details) {
+    const idInstr = this.#pipeline.ID.instruction;
     if (!idInstr) {
       return;
     }
 
     // 依存する先行命令が存在するかチェックするステージ
-    const dependStages = [pipeline.EX, pipeline.MEM];
+    const dependStages = [this.#pipeline.EX, this.#pipeline.MEM];
 
     for (const dependStage of dependStages) {
       const dependInstr = dependStage.instruction;
@@ -67,7 +73,7 @@ class HazardUnit {
 
       // フォワーディング有効時、チェック対象のステージがMEMの場合は
       // フォワーディングによって解決可能なのでスキップ
-      if (forwardingEnabled && dependStage === pipeline.MEM) {
+      if (forwardingEnabled && dependStage === this.#pipeline.MEM) {
         continue;
       }
 
@@ -99,7 +105,6 @@ class Processor {
   #cycle = 0;
   #pc = 0;
   #history = [];
-  #hazardUnit = new HazardUnit();
   #pipeline = {
     IF: new Stage("IF"),
     ID: new Stage("ID"),
@@ -107,6 +112,7 @@ class Processor {
     MEM: new Stage("MEM"),
     WB: new Stage("WB"),
   };
+  #hazardUnit = new HazardUnit(this.#pipeline);
   #instructions = [];
 
   forwardingEnabled = false;
@@ -124,7 +130,7 @@ class Processor {
   }
 
   get hazardDetails() {
-    return this.#hazardUnit.detect(this.#pipeline, this.forwardingEnabled);
+    return this.#hazardUnit.detect(this.forwardingEnabled);
   }
 
   incrementCycle() {
@@ -132,10 +138,7 @@ class Processor {
     this.#cycle++; // 先にサイクルを進める
 
     // ハザード検出
-    const hazardDetails = this.#hazardUnit.detect(
-      this.pipeline,
-      this.forwardingEnabled,
-    );
+    const hazardDetails = this.#hazardUnit.detect(this.forwardingEnabled);
 
     // 後ろからパイプラインを更新していく
     this.#pipeline.MEM.passInstructionTo(this.#pipeline.WB);
