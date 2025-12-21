@@ -1,27 +1,26 @@
 class Stage {
   #instruction = null;
+  #name = "";
 
   constructor(name) {
-    this.name = name;
+    this.#name = name;
     this.#instruction = null;
   }
 
-  set instruction(instr) {
-    const isValid =
-      instr &&
-      instr.operation !== undefined &&
-      instr.rd !== undefined &&
-      instr.rs1 !== undefined &&
-      instr.rs2 !== undefined;
+  get name() {
+    return this.#name;
+  }
 
-    this.#instruction = isValid
-      ? {
-          operation: instr.operation,
-          rd: instr.rd,
-          rs1: instr.rs1,
-          rs2: instr.rs2,
-        }
-      : null;
+  set instruction(instr) {
+    this.#instruction =
+      instr?.operation !== undefined
+        ? {
+            operation: instr.operation,
+            rd: instr.rd,
+            rs1: instr.rs1,
+            rs2: instr.rs2,
+          }
+        : null;
   }
 
   get instruction() {
@@ -108,13 +107,12 @@ class Processor {
     MEM: new Stage("MEM"),
     WB: new Stage("WB"),
   };
+  #instructions = [];
 
   forwardingEnabled = false;
 
-  constructor(instructions) {
-    this.instructions = instructions || [];
-
-    this.resetProgramCounter();
+  constructor() {
+    this.reset();
   }
 
   get cycle() {
@@ -134,7 +132,7 @@ class Processor {
     this.#cycle++; // 先にサイクルを進める
 
     // ハザード検出
-    const hazardDetails = this.hazardUnit.detect(
+    const hazardDetails = this.#hazardUnit.detect(
       this.pipeline,
       this.forwardingEnabled,
     );
@@ -148,8 +146,8 @@ class Processor {
       this.#pipeline.IF.passInstructionTo(this.#pipeline.ID);
 
       // IFステージの命令フェッチ
-      if (this.#pc < this.instructions.length) {
-        const nextInstr = this.instructions[this.#pc];
+      if (this.#pc < this.#instructions?.length) {
+        const nextInstr = this.#instructions[this.#pc];
         this.#pipeline.IF.instruction = nextInstr;
         this.#pc++;
       } else {
@@ -185,7 +183,7 @@ class Processor {
     });
   }
 
-  resetProgramCounter() {
+  reset() {
     this.#cycle = 0;
     this.#pc = 0;
     this.#history = [];
@@ -197,16 +195,16 @@ class Processor {
   }
 
   addInstruction(instruction) {
-    this.instructions.push(instruction);
+    this.#instructions.push(instruction);
   }
 
   clearInstructions() {
-    this.instructions = [];
-    this.resetProgramCounter();
+    this.#instructions = [];
+    this.reset();
   }
 
-  getAllInstructions() {
-    return this.instructions;
+  get instructions() {
+    return this.#instructions;
   }
 }
 

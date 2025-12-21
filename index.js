@@ -87,8 +87,7 @@ document
       });
     }
 
-    document.getElementById("instructions").textContent = processor
-      .getAllInstructions()
+    document.getElementById("instructions").textContent = processor.instructions
       .map((instr, l) => {
         if (instr.operation === "NOP") {
           return `${l}: NOP`;
@@ -107,7 +106,7 @@ document
     rs1_input.disabled = false;
     rs2_input.disabled = false;
 
-    processor.resetProgramCounter();
+    processor.reset();
     updatePipeline();
   });
 
@@ -136,8 +135,7 @@ document
       rs2: "R5",
     });
 
-    document.getElementById("instructions").textContent = processor
-      .getAllInstructions()
+    document.getElementById("instructions").textContent = processor.instructions
       .map(
         (instr, l) =>
           `${l}: ${instr.operation} ${instr.rd}, ${instr.rs1}, ${instr.rs2}`,
@@ -158,7 +156,7 @@ document.getElementById("prevButton").addEventListener("click", () => {
 });
 
 document.getElementById("resetButton").addEventListener("click", () => {
-  processor.resetProgramCounter();
+  processor.reset();
   updatePipeline();
 });
 
@@ -179,7 +177,7 @@ document.addEventListener("keydown", (event) => {
       break;
     case " ":
       event.preventDefault();
-      processor.resetProgramCounter();
+      processor.reset();
       updatePipeline();
       break;
   }
