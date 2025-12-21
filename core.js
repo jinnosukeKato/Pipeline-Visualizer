@@ -121,16 +121,12 @@ class Processor {
     return this.#cycle;
   }
 
-  get pipeline() {
-    return this.#pipeline;
-  }
-
   get hazardDetails() {
     return this.#hazardUnit.detect(this.forwardingEnabled);
   }
 
   incrementCycle() {
-    this.saveHistory(); // 巻き戻しのための履歴保存
+    this.#saveHistory(); // 巻き戻しのための履歴保存
     this.#cycle++; // 先にサイクルを進める
 
     // ハザード検出
@@ -167,7 +163,7 @@ class Processor {
     }
   }
 
-  saveHistory() {
+  #saveHistory() {
     const pipelineSnapshot = {};
     Object.keys(this.#pipeline).forEach((stageName) => {
       pipelineSnapshot[stageName] = {
