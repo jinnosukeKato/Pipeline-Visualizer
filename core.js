@@ -1,36 +1,40 @@
 class Stage {
+  #instruction = null;
+
   constructor(name) {
     this.name = name;
-    this.instruction = null;
+    this.#instruction = null;
   }
 
-  setInstruction(operation, rd, rs1, rs2) {
-    this.instruction = operation
+  set instruction(instr) {
+    const isValid =
+      instr &&
+      instr.operation !== undefined &&
+      instr.rd !== undefined &&
+      instr.rs1 !== undefined &&
+      instr.rs2 !== undefined;
+
+    this.#instruction = isValid
       ? {
-          operation,
-          rd,
-          rs1,
-          rs2,
+          operation: instr.operation,
+          rd: instr.rd,
+          rs1: instr.rs1,
+          rs2: instr.rs2,
         }
       : null;
   }
 
-  getInstruction() {
-    return this.instruction;
+  get instruction() {
+    return this.#instruction;
   }
 
   passInstructionTo(stage) {
-    stage.setInstruction(
-      this.instruction.operation,
-      this.instruction.rd,
-      this.instruction.rs1,
-      this.instruction.rs2,
-    );
+    stage.instruction = this.#instruction;
     this.clear();
   }
 
   clear() {
-    this.instruction = null;
+    this.#instruction = null;
   }
 }
 
@@ -93,37 +97,41 @@ class HazardUnit {
 }
 
 class Processor {
+  #cycle = 0;
+  #pc = 0;
+  #history = [];
+  #hazardUnit = new HazardUnit();
+  #pipeline = {
+    IF: new Stage("IF"),
+    ID: new Stage("ID"),
+    EX: new Stage("EX"),
+    MEM: new Stage("MEM"),
+    WB: new Stage("WB"),
+  };
+
+  forwardingEnabled = false;
+
   constructor(instructions) {
     this.instructions = instructions || [];
-    this.hazardUnit = new HazardUnit();
-    this.forwardingEnabled = false;
-
-    this.pipeline = {
-      IF: new Stage("IF"),
-      ID: new Stage("ID"),
-      EX: new Stage("EX"),
-      MEM: new Stage("MEM"),
-      WB: new Stage("WB"),
-    };
 
     this.resetProgramCounter();
   }
 
-  getCycle() {
-    return this.cycle;
+  get cycle() {
+    return this.#cycle;
   }
 
-  getPipeline() {
-    return this.pipeline;
+  get pipeline() {
+    return this.#pipeline;
   }
 
-  getHazardDetails() {
-    return this.hazardUnit.detect(this.pipeline, this.forwardingEnabled);
+  get hazardDetails() {
+    return this.#hazardUnit.detect(this.#pipeline, this.forwardingEnabled);
   }
 
   incrementCycle() {
     this.saveHistory(); // 巻き戻しのための履歴保存
-    this.cycle++; // 先にサイクルを進める
+    this.#cycle++; // 先にサイクルを進める
 
     // ハザード検出
     const hazardDetails = this.hazardUnit.detect(
@@ -132,72 +140,64 @@ class Processor {
     );
 
     // 後ろからパイプラインを更新していく
-    this.pipeline.WB.passInstructionTo(this.pipeline.MEM);
-    this.pipeline.MEM.passInstructionTo(this.pipeline.EX);
-    if (hazardDetails.shouldStall) {
-      this.pipeline.EX.clear();
-    } else {
-      this.pipeline.EX.passInstructionTo(this.pipeline.ID);
-      this.pipeline.ID.passInstructionTo(this.pipeline.IF);
+    this.#pipeline.MEM.passInstructionTo(this.#pipeline.WB);
+    this.#pipeline.EX.passInstructionTo(this.#pipeline.MEM);
+
+    if (!hazardDetails.shouldStall) {
+      this.#pipeline.ID.passInstructionTo(this.#pipeline.EX);
+      this.#pipeline.IF.passInstructionTo(this.#pipeline.ID);
 
       // IFステージの命令フェッチ
-      if (this.pc < this.instructions.length) {
-        const nextInstr = this.instructions[this.pc];
-        this.pipeline.IF.setInstruction(
-          nextInstr.operation,
-          nextInstr.rd,
-          nextInstr.rs1,
-          nextInstr.rs2,
-        );
-        this.pc++;
+      if (this.#pc < this.instructions.length) {
+        const nextInstr = this.instructions[this.#pc];
+        this.#pipeline.IF.instruction = nextInstr;
+        this.#pc++;
       } else {
-        this.pipeline.IF.clear();
+        this.#pipeline.IF.clear();
       }
     }
   }
 
   decrementCycle() {
-    if (this.history.length > 0) {
-      const prevState = this.history.pop();
-      this.cycle = prevState.cycle;
-      this.pc = prevState.pc;
+    if (this.#history.length > 0) {
+      const prevState = this.#history.pop();
+      this.#cycle = prevState.cycle;
+      this.#pc = prevState.pc;
 
-      Object.keys(this.pipeline).forEach((stageName) => {
-        this.pipeline[stageName].setInstructionDirect(
-          prevState.pipeline[stageName].instruction,
-        );
+      Object.values(this.#pipeline).forEach((stage) => {
+        stage.instruction = prevState.pipeline[stage.name].instruction;
       });
     }
   }
 
   saveHistory() {
     const pipelineSnapshot = {};
-    Object.keys(this.pipeline).forEach((stageName) => {
+    Object.keys(this.#pipeline).forEach((stageName) => {
       pipelineSnapshot[stageName] = {
-        instruction: this.pipeline[stageName].getInstruction(),
+        instruction: this.#pipeline[stageName].instruction,
       };
     });
 
-    this.history.push({
-      cycle: this.cycle,
-      pc: this.pc,
+    this.#history.push({
+      cycle: this.#cycle,
+      pc: this.#pc,
       pipeline: pipelineSnapshot,
     });
   }
 
   resetProgramCounter() {
-    this.cycle = 0;
-    this.pc = 0;
-    this.history = [];
-    if (this.pipeline) {
-      Object.values(this.pipeline).forEach((stage) => {
+    this.#cycle = 0;
+    this.#pc = 0;
+    this.#history = [];
+    if (this.#pipeline) {
+      Object.values(this.#pipeline).forEach((stage) => {
         stage.clear();
       });
     }
   }
 
-  addInstruction(operation, rd, rs1, rs2) {
-    this.instructions.push({ operation, rd, rs1, rs2 });
+  addInstruction(instruction) {
+    this.instructions.push(instruction);
   }
 
   clearInstructions() {

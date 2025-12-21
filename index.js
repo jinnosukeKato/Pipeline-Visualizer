@@ -3,8 +3,8 @@ import Processor from "./core.js";
 const processor = new Processor();
 
 const updatePipeline = () => {
-  const cycle = processor.getCycle();
-  const pipeline = processor.getPipeline();
+  const cycle = processor.cycle;
+  const pipeline = processor.pipeline;
   const stages = ["IF", "ID", "EX", "MEM", "WB"];
 
   stages.forEach((stage) => {
@@ -13,7 +13,7 @@ const updatePipeline = () => {
     if (cell) {
       cell.classList.remove("hazard-cell");
       const stageObj = pipeline[stage];
-      const instr = stageObj ? stageObj.getInstruction() : null;
+      const instr = stageObj ? stageObj.instruction : null;
 
       if (instr) {
         if (instr.operation === "NOP") {
@@ -30,7 +30,7 @@ const updatePipeline = () => {
   document.getElementById("currentCycle").textContent = cycle;
 
   // ハザードのハイライト処理
-  const hazardDetails = processor.getHazardDetails();
+  const hazardDetails = processor.hazardDetails;
   if (hazardDetails.hazardDetected) {
     hazardDetails.causes.forEach((cause) => {
       const cell = document.getElementById(
@@ -72,14 +72,19 @@ document
     }
 
     if (op_input.value === "NOP") {
-      processor.addInstruction("NOP", null, null, null);
+      processor.addInstruction({
+        operation: "NOP",
+        rd: null,
+        rs1: null,
+        rs2: null,
+      });
     } else {
-      processor.addInstruction(
-        op_input.value,
-        rd_input.value,
-        rs1_input.value,
-        rs2_input.value,
-      );
+      processor.addInstruction({
+        operation: op_input.value,
+        rd: rd_input.value,
+        rs1: rs1_input.value,
+        rs2: rs2_input.value,
+      });
     }
 
     document.getElementById("instructions").textContent = processor
@@ -118,8 +123,18 @@ document
   .getElementById("loadHazardExampleButton")
   .addEventListener("click", () => {
     processor.clearInstructions();
-    processor.addInstruction("ADD", "R1", "R2", "R3");
-    processor.addInstruction("SUB", "R4", "R1", "R5");
+    processor.addInstruction({
+      operation: "ADD",
+      rd: "R1",
+      rs1: "R2",
+      rs2: "R3",
+    });
+    processor.addInstruction({
+      operation: "SUB",
+      rd: "R4",
+      rs1: "R1",
+      rs2: "R5",
+    });
 
     document.getElementById("instructions").textContent = processor
       .getAllInstructions()
