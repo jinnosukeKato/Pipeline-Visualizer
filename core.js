@@ -15,12 +15,18 @@ class Stage {
       : null;
   }
 
-  setInstructionDirect(instruction) {
-    this.instruction = instruction;
-  }
-
   getInstruction() {
     return this.instruction;
+  }
+
+  passInstructionTo(stage) {
+    stage.setInstruction(
+      this.instruction.operation,
+      this.instruction.rd,
+      this.instruction.rs1,
+      this.instruction.rs2,
+    );
+    this.clear();
   }
 
   clear() {
@@ -130,13 +136,13 @@ class Processor {
     );
 
     // 後ろからパイプラインを更新していく
-    this.pipeline.WB.setInstructionDirect(this.pipeline.MEM.getInstruction());
-    this.pipeline.MEM.setInstructionDirect(this.pipeline.EX.getInstruction());
+    this.pipeline.WB.passInstructionTo(this.pipeline.MEM);
+    this.pipeline.MEM.passInstructionTo(this.pipeline.EX);
     if (hazardDetails.shouldStall) {
       this.pipeline.EX.clear();
     } else {
-      this.pipeline.EX.setInstructionDirect(this.pipeline.ID.getInstruction());
-      this.pipeline.ID.setInstructionDirect(this.pipeline.IF.getInstruction());
+      this.pipeline.EX.passInstructionTo(this.pipeline.ID);
+      this.pipeline.ID.passInstructionTo(this.pipeline.IF);
 
       // IFステージの命令フェッチ
       if (this.pc < this.instructions.length) {
