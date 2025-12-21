@@ -38,7 +38,7 @@ class Stage {
 }
 
 class HazardUnit {
-  detect(pipeline, forwardingEnabled) {
+  static detect(pipeline, forwardingEnabled) {
     const details = {
       hazardDetected: false,
       shouldStall: false,
@@ -50,7 +50,7 @@ class HazardUnit {
     return details;
   }
 
-  checkDataHazard(pipeline, forwardingEnabled, details) {
+  static checkDataHazard(pipeline, forwardingEnabled, details) {
     const idInstr = pipeline.ID.instruction;
     if (!idInstr) {
       return;
