@@ -117,10 +117,6 @@ class Processor {
 
   forwardingEnabled = false;
 
-  constructor() {
-    this.reset();
-  }
-
   get cycle() {
     return this.#cycle;
   }
