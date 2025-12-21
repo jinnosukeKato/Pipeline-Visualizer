@@ -109,10 +109,6 @@ class Processor {
     this.resetProgramCounter();
   }
 
-  setForwarding(enabled) {
-    this.forwardingEnabled = enabled;
-  }
-
   getCycle() {
     return this.cycle;
   }

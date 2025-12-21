@@ -148,7 +148,7 @@ document.getElementById("resetButton").addEventListener("click", () => {
 });
 
 document.getElementById("forwardingToggle").addEventListener("change", (e) => {
-  processor.setForwarding(e.target.checked);
+  processor.forwardingEnabled = e.target.checked;
   updatePipeline();
 });
 
