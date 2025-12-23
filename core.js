@@ -125,6 +125,10 @@ class Processor {
     return this.#hazardUnit.detect(this.forwardingEnabled);
   }
 
+  get pipeline() {
+    return this.#pipeline;
+  }
+
   incrementCycle() {
     this.#saveHistory(); // 巻き戻しのための履歴保存
     this.#cycle++; // 先にサイクルを進める
